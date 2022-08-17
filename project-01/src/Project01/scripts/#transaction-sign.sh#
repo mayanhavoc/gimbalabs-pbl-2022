@@ -1,0 +1,6 @@
+
+cardano-cli transaction sign \
+--tx-body-file tx.draft \
+--signing-key-file payment.skey \
+--testnet-magic $TESTNET \
+--out-file tx.signed

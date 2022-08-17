@@ -1,7 +1,7 @@
 ## 203.2: How to Include Metadata in a Cardano Transaction
 If you know how to send a simple transaction with `cardano-cli`, then there is just one more thing you need to know in order to include metadata in your transaction.
 
-In this example, notice that is no `--tx-out`. You will simply send a transaction to yourself. Adding addition `--tx-in`'s or `--tx-out`'s will have no effect on the way we include metadata in the transaction.
+In this example, notice there is no `--tx-out`. You will simply send a transaction to yourself. Additonal `--tx-in`'s or `--tx-out`'s will have no effect on the way we include metadata in the transaction.
 
 ### Prepare metadata JSON file:
 - Create a new `.json` file like `simple-metadata.json` (in `/project-203/metadata`)
