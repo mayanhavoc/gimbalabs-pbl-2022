@@ -22,8 +22,10 @@ writeValidator file = writeFileTextEnvelope @(PlutusScript PlutusScriptV1) file 
 -- 4. Compile your script
 -- 5. Recommended: take a screenshot of this file so that you can remember the parameters you used
 
+-- TokenSymbol == Token's policyid
+
 writeFaucetScript :: IO (Either (FileError ()) ())
-writeFaucetScript = writeValidator "output/ppbl-faucet.plutus" $ FaucetValidatorScript.validator $ FaucetValidatorScript.FaucetParams
+writeFaucetScript = writeValidator "output/ppbl-faucet-t.plutus" $ FaucetValidatorScript.validator $ FaucetValidatorScript.FaucetParams
     {
       FaucetValidatorScript.accessTokenSymbol     = "1309921891e459c7e9acb338d5dae18f98d1c2f55c1852cd5cf341f9"
     , FaucetValidatorScript.accessTokenName       = "PPBLSummer2022"
