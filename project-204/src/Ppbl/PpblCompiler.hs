@@ -15,6 +15,16 @@ import Plutus.V1.Ledger.Api (Data (B, Constr, I, List, Map), ToData, toData)
 
 import Ppbl.PpblValidator
 
+data FaucetDatum = FaucetDatum
+  { accessTokenSymbol   :: !CurrencySymbol
+  , accessTokenName     :: !TokenName
+  , faucetTokenSymbol   :: !CurrencySymbol
+  , faucetTokenName     :: !TokenName
+  , withdrawalAmount    :: !Integer
+  } deriving (Pr.Eq, Pr.Ord, Show, Generic, ToJSON, FromJSON, ToSchema)
+
+PlutusTx.unstableMakeIsData ''FaucetDatum
+
 dataToScriptData :: Data -> ScriptData
 dataToScriptData (Constr n xs) = ScriptDataConstructor n $ dataToScriptData <$> xs
 dataToScriptData (I n) = ScriptDataNumber n
@@ -32,8 +42,17 @@ writePpblDatum = writeJson "src/Ppbl/output/PpblDatum.json" $ PpblDatum
   , buyerAddress  = "b3a5d1c826945b361a3c5236d84fd8dcbf66faa27ab10ef1535d9057"
   , priceAmount   = 20000000
   , cancelFees    = 5000000
-  
   }
+
+writePpblFaucetDatum :: IO ()
+writePpblFaucetDatum = writeJson "src/Ppbl/output/PpblFaucetDatum.json" $ FaucetDatum
+  {
+      accessTokenSymbol     = "28adc4b12edd23bad18823c0b0a74b24a95ccf45babf8a3782217f4f"
+    ,accessTokenName       = "PPBLContribLevel1"
+    ,faucetTokenSymbol     = "2b0a04a7b60132b1805b296c7fcb3b217ff14413991bf76f72663c30"
+    ,faucetTokenName       = "gimbal"
+    ,withdrawalAmount      = 25000000
+    }
 
 writeValidator :: FilePath -> Ledger.Validator -> IO (Either (FileError ()) ())
 writeValidator file = writeFileTextEnvelope @(PlutusScript PlutusScriptV1) file Nothing . PlutusScriptSerialised . SBS.toShort . LBS.toStrict . serialise . Ledger.unValidatorScript

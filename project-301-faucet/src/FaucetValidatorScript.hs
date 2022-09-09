@@ -12,22 +12,29 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 
 
-module FaucetValidatorScript
-  ( FaucetParams (..)
-  , validator
-  ) where
+module FaucetValidatorScript where
 
-
-import              Data.Aeson                (ToJSON, FromJSON)
+import              Control.Monad             hiding (fmap)
+import              Data.Aeson           (ToJSON, FromJSON)
+import              Data.Map                  as Map
+import              Data.Text                 (Text)
+import              Data.Void                 (Void)
 import              GHC.Generics              (Generic)
-import              Schema                    (ToSchema)
-import              Ledger              hiding (singleton)
-import              Ledger.Address
-import              Ledger.Typed.Scripts
-import              Ledger.Value        as Value
-import              Ledger.Ada
+import              Plutus.Contract
+import              PlutusTx                  (Data (..))
 import qualified    PlutusTx
 import              PlutusTx.Prelude    hiding (Semigroup (..), unless)
+import              Ledger              hiding (singleton)
+import              Ledger.Constraints   (TxConstraints)
+import qualified    Ledger.Constraints   as Constraints
+import              Ledger.Typed.Scripts as Scripts
+import              Ledger.Ada
+import              Playground.Contract  (printJson, printSchemas, ensureKnownCurrencies, stage, ToSchema)
+import              Playground.TH        (mkKnownCurrencies, mkSchemaDefinitions)
+import              Playground.Types     (KnownCurrency (..))
+import              Schema                    (ToSchema)
+import              Ledger.Address
+import              Ledger.Value        as Value
 import              Prelude             (Show (..))
 import qualified    Prelude                   as Pr
 
@@ -44,7 +51,7 @@ import qualified    Prelude                   as Pr
 -- Transactions will still have to match the type Integer for Datum and Redeemer
 -- The context matters: we want to see that the PPBLSummer2022 token is in the transaction inputs and outputs.
 
-data FaucetParams = FaucetParams
+data FaucetDatum = FaucetDatum
   { accessTokenSymbol   :: !CurrencySymbol
   , accessTokenName     :: !TokenName
   , faucetTokenSymbol   :: !CurrencySymbol
@@ -52,11 +59,11 @@ data FaucetParams = FaucetParams
   , withdrawalAmount    :: !Integer
   } deriving (Pr.Eq, Pr.Ord, Show, Generic, ToJSON, FromJSON, ToSchema)
 
-PlutusTx.makeLift ''FaucetParams
+PlutusTx.unstableMakeIsData ''FaucetDatum
 
-{-# INLINEABLE faucetValidator #-}
-faucetValidator :: FaucetParams -> Integer -> Integer -> ScriptContext -> Bool
-faucetValidator faucet _ _ ctx =   traceIfFalse "Input needs PPBLSummer2022 token"    inputHasAccessToken &&
+{-# INLINABLE mkValidator #-}
+mkValidator :: FaucetDatum -> () -> ScriptContext -> Bool
+mkValidator faucet _ ctx =   traceIfFalse "Input needs PPBLSummer2022 token"    inputHasAccessToken &&
                             traceIfFalse "PPBLSummer2022 token must return to sender" outputHasAccessToken &&
                             traceIfFalse "Faucet token must be distributed to sender" outputHasFaucetToken &&
                             traceIfFalse "Must return remaining tokens to contract"   faucetContractGetsRemainingTokens &&
@@ -107,20 +114,23 @@ faucetValidator faucet _ _ ctx =   traceIfFalse "Input needs PPBLSummer2022 toke
     checkDatumIsOk :: Bool
     checkDatumIsOk = True
 
-data FaucetTypes
+data Faucet
+instance Scripts.ValidatorTypes Faucet where
+    type instance DatumType Faucet = FaucetDatum
+    type instance RedeemerType Faucet = () 
 
-instance ValidatorTypes FaucetTypes where
-    type DatumType FaucetTypes = Integer
-    type RedeemerType FaucetTypes = Integer
+-- instance ValidatorTypes FaucetTypes where
+--     type DatumType FaucetTypes = Integer
+--     type RedeemerType FaucetTypes = Integer
 
-typedValidator :: FaucetParams -> TypedValidator FaucetTypes
-typedValidator faucet =
-  mkTypedValidator @FaucetTypes
-    ($$(PlutusTx.compile [||faucetValidator||]) `PlutusTx.applyCode` PlutusTx.liftCode faucet)
-    $$(PlutusTx.compile [||wrap||])
+typedValidator :: Scripts.TypedValidator Faucet
+typedValidator = Scripts.mkTypedValidator @Faucet
+    $$(PlutusTx.compile [|| mkValidator ||])
+    $$(PlutusTx.compile [|| wrap ||])
   where
-    wrap = wrapValidator @Integer @Integer
+    wrap = Scripts.wrapValidator @FaucetDatum @()
 
 
-validator :: FaucetParams -> Validator
-validator = validatorScript . typedValidator
+validator :: Validator
+validator = Scripts.validatorScript typedValidator
+
