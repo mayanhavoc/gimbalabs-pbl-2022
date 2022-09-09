@@ -1,12 +1,10 @@
 # Project: Build a Faucet
 
-## Part 3: Test Locking and Unlocking Transactions with `cardano-cli`
-### Follow Up from Live Coding 2022-09-01
+## Testing Faucet Contract on Mainnet (Danger!)
 
-Try to unlock tokens from the contract at: `addr_test1wpenjjl2ea22r0vlcm9m3hy9heafwpt3grmty0qfx4r0nrglkg0pk`
+Try to unlock tokens from the contract at: `addr1w9tlx9ml6wc2eyuxhxaapn0wvs7z4qlzdqzqz8ljh5cq86q5atkch`
 
 ### Step By Step:
-1. Get the `ppbl-pre-prod-faucet-tgimbal-pkh.plutus` file provided here in `/project-301-faucet/shared-script/`
 2. Create a `redeemer.json` file with the following contents:
 ```
 {"constructor":0,"fields":[{"bytes":"<YOUR PUBKEYHASH HERE"}]}
@@ -19,22 +17,22 @@ cardano-cli transaction hash-script-data --script-data-value 1618
 4. Build an Unlocking Transaction to get some `tgimbal` tokens:
 #### Set Variables
 ```
-CONTRACT_TXIN=""
-AUTH_TOKEN_TXIN=""
-FEE_TXIN=""
-COLLATERAL=""
-DATUMHASH=""
-PLUTUS_SCRIPT_FILE="<path to...>/output/ppbl-pre-prod-faucet-tgimbal-pkh.plutus"
-ASSET="fb45417ab92a155da3b31a8928c873eb9fd36c62184c736f189d334c.7467696d62616c"
-AUTH_TOKEN="748ee66265a1853c6f068f86622e36b0dda8edfa69c689a7dd232c60.5050424c53756d6d657232303232"
+CONTRACT_TXIN="d06adf856deb43f61e9742a6a5d45a83b3d52225b1c5040e3883c6385ff55df7#1"
+AUTH_TOKEN_TXIN="ec8680089c1a97dbb2d83caa1ff0e6afd065157c75b25d8fc58e724bb8203465#1"
+FEE_TXIN="0f4b735021ecd7ffde11f9be83c0a4501dcb008ed97cb3a61ede26a693d287c0#0"
+COLLATERAL="0f4b735021ecd7ffde11f9be83c0a4501dcb008ed97cb3a61ede26a693d287c0#2"
+DATUMHASH="2da1c63e7646ce8cc514113c66e9cefb79e482210ad1dadb51c2a17ab14cf114"
+PLUTUS_SCRIPT_FILE="/home/james/hd2/ppbl-course-02/ppbl-course-02/project-301-faucet/output/ppbl-faucet-mainnet-gimbal.plutus"
+ASSET="2b0a04a7b60132b1805b296c7fcb3b217ff14413991bf76f72663c30.67696d62616c"
+AUTH_TOKEN="28adc4b12edd23bad18823c0b0a74b24a95ccf45babf8a3782217f4f.5050424c436f6e747269624c6576656c31"
 ```
-Note: `$ASSET` represents `tgimbal`; `$AUTH_TOKEN` represents `PPBLSummer2022`
+Note: `$ASSET` represents `gimbal`; `$AUTH_TOKEN` represents `PPBLContribLevel1`
 
 #### Build Unlocking Transaction
 ```
 cardano-cli transaction build \
 --alonzo-era \
---testnet-magic 1 \
+--mainnet \
 --tx-in $AUTH_TOKEN_TXIN \
 --tx-in $FEE_TXIN \
 --tx-in $CONTRACT_TXIN \
@@ -42,23 +40,23 @@ cardano-cli transaction build \
 --tx-in-datum-value 1618 \
 --tx-in-redeemer-file redeemer.json \
 --tx-in-collateral $COLLATERAL \
---tx-out $YOURWALLET+"2000000 + 3000 $ASSET" \
---tx-out $YOURWALLET+"2000000 + 1 $AUTH_TOKEN" \
---tx-out $CONTRACTADDR+"2000000 + <NUMBER OF TOKENS TO RETURN TO CONTRACTADDR> $ASSET" \
+--tx-out $RECEIVE+"2000000 + 25000000 $ASSET" \
+--tx-out $RECEIVE+"2000000 + 1 $AUTH_TOKEN" \
+--tx-out $CONTRACTADDR+"2000000 + 275000000 $ASSET" \
 --tx-out-datum-hash $DATUMHASH \
---change-address $YOURWALLET \
---protocol-params-file protocol.json \
+--change-address $RECEIVE \
+--protocol-params-file protocol-mainnet.json \
 --out-file unlock.raw
 
 cardano-cli transaction sign \
---signing-key-file $YOURWALLETKEY \
---testnet-magic 1 \
+--signing-key-file $RECEIVEKEY \
+--mainnet \
 --tx-body-file unlock.raw \
 --out-file unlock.signed
 
 cardano-cli transaction submit \
 --tx-file unlock.signed \
---testnet-magic 1
+--mainnet
 ```
 
 # Create Your Own Faucet:
@@ -87,14 +85,12 @@ Set Variables
 ```
 SENDER
 SENDERKEY
-TXIN1=""
-TXIN2=""
-CONTRACTTXIN=""
-CONTRACTADDR=""
-AUTH_TOKEN_TXIN=""
-DATUMHASH=""
-ASSET=""
-PLUTUS_SCRIPT_FILE=""
+TXIN1="63e99dbb926b5a7e08adc7ef2f3710fc31ec26b2b15d3bf269885214e543cc8a#0"
+TXIN2="ec8680089c1a97dbb2d83caa1ff0e6afd065157c75b25d8fc58e724bb8203465#0"
+CONTRACTADDR="addr1w9tlx9ml6wc2eyuxhxaapn0wvs7z4qlzdqzqz8ljh5cq86q5atkch"
+DATUMHASH="2da1c63e7646ce8cc514113c66e9cefb79e482210ad1dadb51c2a17ab14cf114"
+ASSET="2b0a04a7b60132b1805b296c7fcb3b217ff14413991bf76f72663c30.67696d62616c"
+PLUTUS_SCRIPT_FILE="/home/james/hd2/ppbl-course-02/ppbl-course-02/project-301-faucet/output/ppbl-faucet-mainnet-gimbal.plutus"
 
 ```
 
@@ -104,23 +100,23 @@ cardano-cli transaction build \
 --alonzo-era \
 --tx-in $TXIN1 \
 --tx-in $TXIN2 \
---tx-out $CONTRACTADDR+"2000000 + <NUMBER> $ASSET" \
+--tx-out $CONTRACTADDR+"2000000 + 300000000 $ASSET" \
 --tx-out-datum-hash $DATUMHASH \
---tx-out $WALLET1+"2000000 + <NUMBER> $ASSET" \
---change-address $WALLET1 \
---protocol-params-file protocol-preprod.json \
+--tx-out $SENDER+"2000000 + 700000000 $ASSET" \
+--change-address $SENDER \
+--protocol-params-file protocol-mainnet.json \
 --out-file tx-lock.raw \
---testnet-magic 1
+--mainnet
 
 cardano-cli transaction sign \
---signing-key-file $WALLET1KEY \
---testnet-magic 1 \
+--signing-key-file $SENDERKEY \
+--mainnet \
 --tx-body-file tx-lock.raw \
 --out-file tx-lock.signed
 
 cardano-cli transaction submit \
 --tx-file tx-lock.signed \
---testnet-magic 1
+--mainnet
 
 ```
 
