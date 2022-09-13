@@ -9,11 +9,8 @@ import Codec.Serialise (serialise)
 import qualified Data.ByteString.Lazy as LBS
 import qualified Data.ByteString.Short as SBS
 import qualified Ledger
-<<<<<<< HEAD
-import qualified FaucetValidatorScript (validator)
-=======
 import qualified FaucetValidatorScriptWithPkh (validator, FaucetParams (..))
->>>>>>> 93b30cb76f7124a2f8f25847a2af788d099a6a5f
+
 
 
 writeValidator :: FilePath -> Ledger.Validator -> IO (Either (FileError ()) ())
@@ -29,16 +26,11 @@ writeValidator file = writeFileTextEnvelope @(PlutusScript PlutusScriptV1) file 
 -- TokenSymbol == Token's policyid
 
 writeFaucetScript :: IO (Either (FileError ()) ())
-<<<<<<< HEAD
-writeFaucetScript = writeValidator "output/ppbl-faucet-t.plutus" $ FaucetValidatorScript.validator
-
-=======
-writeFaucetScript = writeValidator "output/ppbl-faucet-mainnet-gimbal.plutus" $ FaucetValidatorScriptWithPkh.validator $ FaucetValidatorScriptWithPkh.FaucetParams
+writeFaucetScript = writeValidator "output/ppbl-faucet-micochango.plutus" $ FaucetValidatorScriptWithPkh.validator $ FaucetValidatorScriptWithPkh.FaucetParams
     {
-      FaucetValidatorScriptWithPkh.accessTokenSymbol     = "28adc4b12edd23bad18823c0b0a74b24a95ccf45babf8a3782217f4f"
-    , FaucetValidatorScriptWithPkh.accessTokenName       = "PPBLContribLevel1"
-    , FaucetValidatorScriptWithPkh.faucetTokenSymbol     = "2b0a04a7b60132b1805b296c7fcb3b217ff14413991bf76f72663c30"
-    , FaucetValidatorScriptWithPkh.faucetTokenName       = "gimbal"
-    , FaucetValidatorScriptWithPkh.withdrawalAmount      = 25000000
+      FaucetValidatorScriptWithPkh.accessTokenSymbol     = "1309921891e459c7e9acb338d5dae18f98d1c2f55c1852cd5cf341f9"
+    , FaucetValidatorScriptWithPkh.accessTokenName       = "PPBLSummer2022"
+    , FaucetValidatorScriptWithPkh.faucetTokenSymbol     = "5e33da121bfacab420c3af5443ef68b31cfcf6737069c657907bde6c"
+    , FaucetValidatorScriptWithPkh.faucetTokenName       = "micochango"
+    , FaucetValidatorScriptWithPkh.withdrawalAmount      = 100
     }
->>>>>>> 93b30cb76f7124a2f8f25847a2af788d099a6a5f

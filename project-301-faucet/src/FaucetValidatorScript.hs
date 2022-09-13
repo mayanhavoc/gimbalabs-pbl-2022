@@ -78,6 +78,7 @@ mkValidator faucet _ ctx =   traceIfFalse "Input needs PPBLSummer2022 token"    
     allTokens :: [CurrencySymbol]
     allTokens = symbols $ valueSpent info
 
+    -- Could this be a definition of an access token?
     inputHasAccessToken :: Bool
     inputHasAccessToken = (accessTokenSymbol faucet) `elem` allTokens
 

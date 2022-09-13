@@ -1,0 +1,18 @@
+{
+    "721": {
+        "a10aa40d0ec3fd4c8fa33a2910fb27941ae8b7ad2a5b0c30816f7a20": {
+            "mary": {
+                "name": "micochangoNFT",
+                "image": ["bafybeiatt36zf57vssibfvbftnsdf6wgoxnrwysspu6yrb4bph2flrot6m"],
+                "mediaType": "image/png",
+                "description": "",
+                "files": [
+                    {
+                        "mediaType": "image/png",
+                        "src": ["bafybeiatt36zf57vssibfvbftnsdf6wgoxnrwysspu6yrb4bph2flrot6m"]
+                    }
+                ]
+            }
+        }
+    }
+}

@@ -132,8 +132,8 @@ cardano-cli transaction submit \
 
 ```
 cardano-cli transaction build \
---babbage-era \
---testnet-magic 1097911063 \
+--alonzo-era \
+--testnet-magic 1 \
 --tx-in $AUTH_TOKEN_TXIN \
 --tx-in $FEE_TXIN \
 --tx-in $ADDITIONAL_TOKEN_TXIN \
