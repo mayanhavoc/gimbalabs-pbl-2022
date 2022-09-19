@@ -28,7 +28,7 @@ writeValidator file = writeFileTextEnvelope @(PlutusScript PlutusScriptV1) file 
 writeFaucetScript :: IO (Either (FileError ()) ())
 writeFaucetScript = writeValidator "output/ppbl-faucet-micochango.plutus" $ FaucetValidatorScriptWithPkh.validator $ FaucetValidatorScriptWithPkh.FaucetParams
     {
-      FaucetValidatorScriptWithPkh.accessTokenSymbol     = "1309921891e459c7e9acb338d5dae18f98d1c2f55c1852cd5cf341f9"
+      FaucetValidatorScriptWithPkh.accessTokenSymbol     = "748ee66265a1853c6f068f86622e36b0dda8edfa69c689a7dd232c60"
     , FaucetValidatorScriptWithPkh.accessTokenName       = "PPBLSummer2022"
     , FaucetValidatorScriptWithPkh.faucetTokenSymbol     = "5e33da121bfacab420c3af5443ef68b31cfcf6737069c657907bde6c"
     , FaucetValidatorScriptWithPkh.faucetTokenName       = "micochango"
