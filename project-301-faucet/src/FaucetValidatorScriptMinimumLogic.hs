@@ -12,7 +12,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 
 
-module FaucetValidatorScriptWithAddress
+module FaucetValidatorScriptMinimumLogic
   ( FaucetParams (..)
   , validator
   ) where
@@ -31,18 +31,7 @@ import              PlutusTx.Prelude    hiding (Semigroup (..), unless)
 import              Prelude             (Show (..))
 import qualified    Prelude                   as Pr
 
--- Simple Faucet validator script
-
--- Usage:
--- Expect one utxo at each contract.
--- Take that utxo as input
--- Create a new utxo with the "change" as output
-
--- This contract provides an example of using Validator Parameters.
-
--- For now, the Datum and Redeemer are not used in contract logic
--- Transactions will still have to match the type Integer for Datum and Redeemer
--- The context matters: we want to see that the PPBLSummer2022 token is in the transaction inputs and outputs.
+-- Even Simpler Faucet Validator -> For Testing Front End Transactions
 
 data FaucetParams = FaucetParams
   { accessTokenSymbol   :: !CurrencySymbol
@@ -54,47 +43,22 @@ data FaucetParams = FaucetParams
 
 PlutusTx.makeLift ''FaucetParams
 
+-- Maybe add a datum check?
+
 {-# INLINEABLE faucetValidator #-}
-faucetValidator :: FaucetParams -> Integer -> Address -> ScriptContext -> Bool
-faucetValidator faucet _ withdrawalAddress ctx =  traceIfFalse "Input needs PPBLSummer2022 token"           inputHasAccessToken &&
-                                                  traceIfFalse "PPBLSummer2022 token must return to sender" outputHasAccessToken &&
-                                                  traceIfFalse "Faucet token must be distributed to sender" outputHasFaucetToken &&
-                                                  traceIfFalse "Must return remaining tokens to contract"   faucetContractGetsRemainingTokens &&
-                                                  traceIfFalse "Do we need to check datum"                  checkDatumIsOk
+faucetValidator :: FaucetParams -> Integer -> Integer -> ScriptContext -> Bool
+faucetValidator faucet _ _ ctx =  traceIfFalse "Input needs PPBLSummer2022 token"           inputHasAccessToken &&
+                                  traceIfFalse "Must return remaining tokens to contract"   faucetContractGetsRemainingTokens
+
   where
     info :: TxInfo
     info = scriptContextTxInfo ctx
-
-    faucetOutputs :: [TxOut]
-    faucetOutputs = txInfoOutputs info
-
-    -- receiverPkh :: PubKeyHash
-    -- receiverPkh = head $ txInfoSignatories info
-
-    addressGetsFaucetTokens :: [TxOut] -> Address -> Bool
-    addressGetsFaucetTokens [] _ = False
-    addressGetsFaucetTokens (x:xs) addr
-      | checkAddress && checkValue  = True
-      | otherwise                   = addressGetsFaucetTokens xs addr
-      where
-        checkAddress = txOutAddress x == addr
-        checkValue = valueOf (txOutValue x) (accessTokenSymbol faucet) (accessTokenName faucet) >= (withdrawalAmount faucet)
 
     allTokens :: [CurrencySymbol]
     allTokens = symbols $ valueSpent info
 
     inputHasAccessToken :: Bool
     inputHasAccessToken = (accessTokenSymbol faucet) `elem` allTokens
-
-    -- valueToReceiver :: Value
-    -- valueToReceiver = valuePaidTo info receiverPkh
-
-    outputHasAccessToken :: Bool
-    outputHasAccessToken = True
-    -- outputHasAccessToken = (valueOf valueToReceiver (accessTokenSymbol faucet) (accessTokenName faucet)) >= 1
-
-    outputHasFaucetToken :: Bool
-    outputHasFaucetToken = addressGetsFaucetTokens faucetOutputs withdrawalAddress
 
     -- The UTXO input from Faucet
     ownInput :: TxOut
@@ -114,17 +78,21 @@ faucetValidator faucet _ withdrawalAddress ctx =  traceIfFalse "Input needs PPBL
     faucetOutputValue :: Value
     faucetOutputValue = txOutValue ownOutput
 
-    faucetContractGetsRemainingTokens :: Bool
-    faucetContractGetsRemainingTokens = (valueOf faucetInputValue (faucetTokenSymbol faucet) (faucetTokenName faucet)) - (withdrawalAmount faucet) <= (valueOf faucetOutputValue (faucetTokenSymbol faucet) (faucetTokenName faucet))
+    expectedTokensReturnedToFaucet :: Integer
+    expectedTokensReturnedToFaucet = (valueOf faucetInputValue (faucetTokenSymbol faucet) (faucetTokenName faucet)) - (withdrawalAmount faucet)
 
-    checkDatumIsOk :: Bool
-    checkDatumIsOk = True
+    tokensReturnedToFaucet :: Integer
+    tokensReturnedToFaucet = (valueOf faucetOutputValue (faucetTokenSymbol faucet) (faucetTokenName faucet))
+
+    faucetContractGetsRemainingTokens :: Bool
+    faucetContractGetsRemainingTokens = tokensReturnedToFaucet >= expectedTokensReturnedToFaucet
+
 
 data FaucetTypes
 
 instance ValidatorTypes FaucetTypes where
     type DatumType FaucetTypes = Integer
-    type RedeemerType FaucetTypes = Address
+    type RedeemerType FaucetTypes = Integer
 
 typedValidator :: FaucetParams -> TypedValidator FaucetTypes
 typedValidator faucet =
@@ -132,7 +100,7 @@ typedValidator faucet =
     ($$(PlutusTx.compile [||faucetValidator||]) `PlutusTx.applyCode` PlutusTx.liftCode faucet)
     $$(PlutusTx.compile [||wrap||])
   where
-    wrap = wrapValidator @Integer @Address
+    wrap = wrapValidator @Integer @Integer
 
 
 validator :: FaucetParams -> Validator
